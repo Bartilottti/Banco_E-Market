@@ -139,7 +139,7 @@ CREATE TABLE `itens_pedido` (
   KEY `FK_PRODUTO_ITENS` (`ID_PRODUTO`),
   CONSTRAINT `FK_PEDIDOS_ITENS` FOREIGN KEY (`ID_PEDIDO`) REFERENCES `pedido` (`ID`),
   CONSTRAINT `FK_PRODUTO_ITENS` FOREIGN KEY (`ID_PRODUTO`) REFERENCES `produto` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -147,8 +147,52 @@ CREATE TABLE `itens_pedido` (
 --
 
 /*!40000 ALTER TABLE `itens_pedido` DISABLE KEYS */;
-INSERT INTO `itens_pedido` VALUES (1,1,3,1,NULL),(2,1,7,1,NULL),(3,1,9,1,NULL),(4,2,10,2,NULL),(5,3,1,1,NULL),(6,3,11,1,NULL);
+INSERT INTO `itens_pedido` VALUES (1,1,3,1,NULL),(2,1,7,1,NULL),(3,1,9,1,NULL),(4,2,10,2,NULL),(5,3,1,1,NULL),(6,3,11,1,NULL),(10,4,5,2,NULL),(11,6,1,5,NULL);
 /*!40000 ALTER TABLE `itens_pedido` ENABLE KEYS */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `TG_CALCULO_VALOR_TOTAL` AFTER INSERT ON `itens_pedido` FOR EACH ROW BEGIN
+    DECLARE V_VALOR_TOTAL DECIMAL(10,2);
+    
+    SELECT VALOR INTO V_VALOR_TOTAL
+    FROM produto
+    WHERE ID = NEW.ID_PRODUTO;
+
+    UPDATE pedido
+    SET VALOR_TOTAL = VALOR_TOTAL + (V_VALOR_TOTAL * NEW.QUANTIDADE)
+    WHERE ID = NEW.ID_PEDIDO;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `TG_ATUALIZAR_ESTOQUE` AFTER INSERT ON `itens_pedido` FOR EACH ROW BEGIN
+    UPDATE PRODUTO
+    SET QUANTIDADE = QUANTIDADE - NEW.QUANTIDADE
+    WHERE ID = NEW.ID_PRODUTO;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `pedido`
@@ -162,14 +206,14 @@ CREATE TABLE `pedido` (
   `CPF_CLIENTE` varchar(14) NOT NULL,
   `ID_CUPOM` int DEFAULT NULL,
   `STATUS_PEDIDO` enum('pago','pendente','cancelado') NOT NULL,
-  `VALOR_TOTAL` decimal(10,2) NOT NULL,
-  `VALOR_FINAL` decimal(10,2) NOT NULL,
+  `Valor_total` decimal(10,2) DEFAULT '0.00',
+  `Valor_FINAL` decimal(10,2) DEFAULT '0.00',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `CPF_CLIENTE` (`CPF_CLIENTE`),
   KEY `FK_CUPOM_PEDIDO` (`ID_CUPOM`),
   CONSTRAINT `FK_CLIENTE_PEDIDO` FOREIGN KEY (`CPF_CLIENTE`) REFERENCES `cliente` (`CPF`),
   CONSTRAINT `FK_CUPOM_PEDIDO` FOREIGN KEY (`ID_CUPOM`) REFERENCES `cupom` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,8 +221,29 @@ CREATE TABLE `pedido` (
 --
 
 /*!40000 ALTER TABLE `pedido` DISABLE KEYS */;
-INSERT INTO `pedido` VALUES (1,'6163512302',1,'pendente',3680.04,3680.04),(2,'789.012.345-66',NULL,'cancelado',12998.00,12998.00),(3,'07786798002',NULL,'pago',14060.99,14060.99);
+INSERT INTO `pedido` VALUES (1,'6163512302',1,'pendente',3680.04,3680.04),(2,'789.012.345-66',NULL,'cancelado',12998.00,12998.00),(3,'07786798002',NULL,'pago',14060.99,14060.99),(4,'567.890.123-44',1,'pago',580.00,280.00),(6,'345.678.901-22',1,'pendente',2804.95,2504.95);
 /*!40000 ALTER TABLE `pedido` ENABLE KEYS */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `TG_APLICAR_VALOR_FINAL` BEFORE UPDATE ON `pedido` FOR EACH ROW BEGIN
+    IF NEW.ID_CUPOM IS NOT NULL THEN
+      SET NEW.VALOR_FINAL = FN_CALCULAR_DESCONTO(NEW.VALOR_TOTAL, NEW.ID_CUPOM);
+      ELSE
+      SET NEW.VALOR_FINAL = NEW.VALOR_TOTAL;
+    END IF;
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `produto`
@@ -206,7 +271,7 @@ CREATE TABLE `produto` (
 --
 
 /*!40000 ALTER TABLE `produto` DISABLE KEYS */;
-INSERT INTO `produto` VALUES (1,1,'AMD','Ryzen 5 5700G',50,560.99),(2,1,'Intel','Processador Intel Core i5-12400F',150,1500.99),(3,3,'Kingston','SSD Kingston NV3 1TB M.2 2280 NVMe Gen4',500,2000.00),(4,1,'AMD','Ryzen 5 5700',100,749.99),(5,2,'MSI','Fonte MSI MAG A650BN, 650W, 80 Plus Bronze, PFC Ativo, Com Cabo, Preto ',200,290.00),(6,1,'Intel','Core i9-14900K Special Edition',25,4200.00),(7,2,'Corsair','Fonte RM850e 850W Full Modular 80 Plus Gold',40,780.50),(8,3,'Samsung','SSD 990 Pro 2TB NVMe M.2 Gen4',60,1150.00),(9,4,'Razer','Mouse Gamer DeathAdder V3 Pro Wireless',100,899.90),(10,5,'Alienware','Monitor Gamer Curvo 34\" QD-OLED 175Hz',15,6499.00),(11,6,'ASUS','ROG Strix GeForce RTX 4090 24GB GDDR6X',5,13500.00),(12,4,'HyperX','Headset Cloud II Wireless 7.1',80,550.00),(13,3,'Seagate','HD Externo Expansion 4TB USB 3.0',120,680.00);
+INSERT INTO `produto` VALUES (1,1,'AMD','Ryzen 5 5700G',45,560.99),(2,1,'Intel','Processador Intel Core i5-12400F',150,1500.99),(3,3,'Kingston','SSD Kingston NV3 1TB M.2 2280 NVMe Gen4',500,2000.00),(4,1,'AMD','Ryzen 5 5700',100,749.99),(5,2,'MSI','Fonte MSI MAG A650BN, 650W, 80 Plus Bronze, PFC Ativo, Com Cabo, Preto ',198,290.00),(6,1,'Intel','Core i9-14900K Special Edition',25,4200.00),(7,2,'Corsair','Fonte RM850e 850W Full Modular 80 Plus Gold',40,780.50),(8,3,'Samsung','SSD 990 Pro 2TB NVMe M.2 Gen4',60,1150.00),(9,4,'Razer','Mouse Gamer DeathAdder V3 Pro Wireless',100,899.90),(10,5,'Alienware','Monitor Gamer Curvo 34\" QD-OLED 175Hz',15,6499.00),(11,6,'ASUS','ROG Strix GeForce RTX 4090 24GB GDDR6X',5,13500.00),(12,4,'HyperX','Headset Cloud II Wireless 7.1',80,550.00),(13,3,'Seagate','HD Externo Expansion 4TB USB 3.0',120,680.00);
 /*!40000 ALTER TABLE `produto` ENABLE KEYS */;
 
 --
@@ -221,7 +286,9 @@ SET @saved_cs_client     = @@character_set_client;
  1 AS `NOME`,
  1 AS `ID`,
  1 AS `STATUS_PEDIDO`,
- 1 AS `TOTAL_DE_ITENS_COMPRADOS`,
+ 1 AS `TOTAL_ITENS_COMPRADOS`,
+ 1 AS `VALOR_TOTAL`,
+ 1 AS `VALOR_DESCONTO`,
  1 AS `VALOR_FINAL`*/;
 SET character_set_client = @saved_cs_client;
 
@@ -254,6 +321,72 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_CANCELAR_PEDIDO` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_CANCELAR_PEDIDO`(IN C_ID_PEDIDO INT)
+BEGIN
+    DECLARE V_EXISTE INT DEFAULT 0;
+    
+    SELECT COUNT(*) INTO V_EXISTE
+    FROM pedido
+    WHERE ID = C_ID_PEDIDO;
+
+    IF V_EXISTE > 0 THEN
+        UPDATE pedido
+        SET STATUS_PEDIDO = 'CANCELADO'
+        WHERE ID = C_ID_PEDIDO;
+        
+        SELECT 'SEU PEDIDO FOI CANCELADO COM SUCESSO!' AS MENSAGEM;
+    ELSE
+        SELECT 'PEDIDO NÃO ENCONTRADO!' AS RESULTADO;
+    END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `SP_FECHAR_PEDIDO` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_unicode_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'IGNORE_SPACE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_FECHAR_PEDIDO`(IN P_ID_PEDIDO INT)
+BEGIN
+  DECLARE V_EXISTE INT DEFAULT 0;
+
+    SELECT COUNT(*) INTO V_EXISTE
+    FROM pedido
+    WHERE ID = P_ID_PEDIDO;
+
+      IF V_EXISTE > 0 THEN
+        UPDATE PEDIDO
+        SET STATUS_PEDIDO = 'PAGO'
+        WHERE ID = P_ID_PEDIDO;
+      
+      SELECT 'PEDIDO FECHADO COM SUCESSO' AS MENSAGEM;
+      ELSE
+          SELECT 'ERRO: PEDIDO NÃO ENCONTRADO' AS RESULTADO;
+      END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Final view structure for view `vw_resumo_pedidos`
@@ -265,10 +398,10 @@ DELIMITER ;
 /*!50001 SET @saved_col_connection     = @@collation_connection */;
 /*!50001 SET character_set_client      = utf8mb4 */;
 /*!50001 SET character_set_results     = utf8mb4 */;
-/*!50001 SET collation_connection      = utf8mb4_unicode_ci */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `vw_resumo_pedidos` AS select `c`.`NOME` AS `NOME`,`p`.`ID` AS `ID`,`p`.`STATUS_PEDIDO` AS `STATUS_PEDIDO`,sum(`ip`.`QUANTIDADE`) AS `TOTAL_DE_ITENS_COMPRADOS`,`p`.`VALOR_FINAL` AS `VALOR_FINAL` from ((`cliente` `c` join `pedido` `p` on((`c`.`CPF` = `p`.`CPF_CLIENTE`))) join `itens_pedido` `ip` on((`p`.`ID` = `ip`.`ID_PEDIDO`))) group by `p`.`ID` */;
+/*!50001 VIEW `vw_resumo_pedidos` AS select `c`.`NOME` AS `NOME`,`p`.`ID` AS `ID`,`p`.`STATUS_PEDIDO` AS `STATUS_PEDIDO`,sum(`ip`.`QUANTIDADE`) AS `TOTAL_ITENS_COMPRADOS`,`p`.`Valor_total` AS `VALOR_TOTAL`,`FN_CALCULAR_DESCONTO`(`p`.`Valor_total`,`p`.`ID_CUPOM`) AS `VALOR_DESCONTO`,`p`.`Valor_FINAL` AS `VALOR_FINAL` from ((`cliente` `c` join `pedido` `p` on((`c`.`CPF` = `p`.`CPF_CLIENTE`))) join `itens_pedido` `ip` on((`p`.`ID` = `ip`.`ID_PEDIDO`))) group by `p`.`ID` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -282,4 +415,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-05-21 15:16:48
+-- Dump completed on 2026-05-22 18:16:01
